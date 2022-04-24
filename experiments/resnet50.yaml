@@ -1,0 +1,12 @@
+MODEL:
+  INIT_WEIGHTS: True
+  NAME: 'resnet50'
+  NUM_CLASSES: 10
+  PRETRAINED: False
+TRAIN:
+  OPTIMIZER: 'sgd'
+LOSS:
+  LOSS: 'cross_entropy'
+DATASET:
+  ROOT: "D:/ML/Dataset"
+  DATASET: "imagenette"

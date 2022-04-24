@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+
+[tool.isort]
+profile = 'black'
+skip_gitignore = true
+src_paths = ['experiments', 'lib', 'tools', 'utils']
+
+[tool.mypy]
+python_version = 3.9
+ignore_missing_imports = true
