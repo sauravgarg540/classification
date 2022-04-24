@@ -15,6 +15,7 @@ from lib.core.models.build import build_model
 from lib.core.optimizers.build import build_optimizer
 from lib.engine.test import test
 from lib.engine.train import train_one_epoch
+from utils.utils import create_logger
 
 
 def parse_args():
@@ -44,6 +45,10 @@ def train():
 
     args = parse_args()
     update_config(config, args)
+    create_logger(config)
+    
+    logging.info('=> config: {}'.format(config))
+    
     model = build_model(config, num_classes=config.MODEL.NUM_CLASSES)
     model.to(torch.device('cuda'))
 
@@ -57,7 +62,6 @@ def train():
     val_loader = build_dataloader(cfg=config, is_train=False)
 
     # lr_scheduler = build_lr_scheduler(config, optimizer, begin_epoch)
-    # scaler = torch.cuda.amp.GradScaler(enabled=config.AMP.ENABLED)
     best_perf = 0.0
 
     logging.info('=> start training')
@@ -68,15 +72,12 @@ def train():
             train_one_epoch(config, train_loader, model, criterion, optimizer, epoch)
 
         if epoch % config.TRAIN.EVAL_BEGIN_EPOCH == 0:
-
             perf, _, _, _ = test(config, model, val_loader, criterion_eval, epoch)
-
             best_perf = perf if perf > best_perf else best_perf
 
     # TODO: add lr scheduler
     # TODO: save checkpoint
     # TODO: add distributed training
-    
 
 
 if __name__ == '__main__':

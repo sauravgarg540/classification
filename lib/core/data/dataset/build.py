@@ -20,8 +20,6 @@ def _build_imagenet_dataset(cfg, is_train):
     transforms = build_transforms(cfg, is_train)
     dataset_path = os.path.join(cfg.DATASET.ROOT, cfg.DATASET.DATASET)
     dataset_name = cfg.DATASET.TRAIN_SET if is_train else cfg.DATASET.TEST_SET
-    dataset = datasets.ImageFolder(
-        os.path.join(dataset_path, dataset_name), transforms
-    )
+    dataset = datasets.ImageFolder(os.path.join(dataset_path, dataset_name), transforms)
 
     return dataset

@@ -10,3 +10,4 @@ LOSS:
 DATASET:
   ROOT: "D:/ML/Dataset"
   DATASET: "imagenette"
+OUTPUT_DIR: "./output/resnet50"

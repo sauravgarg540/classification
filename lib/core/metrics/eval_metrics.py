@@ -2,7 +2,7 @@ import torch
 
 
 class Metrics:
-    def __init__(self, num_classes=None,  epsilon=1e-10):
+    def __init__(self, num_classes=None, epsilon=1e-10):
         self.num_classes = num_classes
         self.num_samples = 0
         self.epsilon = epsilon
@@ -11,7 +11,7 @@ class Metrics:
     @torch.no_grad()
     def update(self, output, target):
         self.num_samples += target.size(0)
-        
+
         if output.dim() > 1:
             _, output = output.topk(1, 1, True, True)
         self.output.append(output.view(-1))
@@ -43,7 +43,7 @@ class Metrics:
         fp = fp.float()
         fn = fn.float()
         tn = tn.float()
-        accuracy = (tp + tn) / (tp + fp + fn + tn  + self.epsilon)
+        accuracy = (tp + tn) / (tp + fp + fn + tn + self.epsilon)
         recall = tp / (tp + fn + self.epsilon)
         precision = tp / (tp + fp + self.epsilon)
         f1_score = 2 * (precision * recall) / (precision + recall + self.epsilon)
