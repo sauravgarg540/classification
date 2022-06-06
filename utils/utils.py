@@ -4,6 +4,8 @@ import shutil
 import time
 from datetime import timedelta
 from pathlib import Path
+import numpy as np
+import random
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -12,9 +14,9 @@ from utils.common import comm
 
 
 def init_distributed(args):
-    args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
-    args.distributed = args.num_gpus > 1
 
+    args.num_gpus = torch.cuda.device_count()
+    args.distributed = args.num_gpus > 1
     if args.distributed:
         print("=> init process group start")
         torch.cuda.set_device(args.local_rank)
@@ -29,6 +31,11 @@ def setup_cudnn(config):
     cudnn.benchmark = config.CUDNN.BENCHMARK
     torch.backends.cudnn.deterministic = config.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = config.CUDNN.ENABLED
+
+def fix_seed(seed):
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def count_parameters(model):

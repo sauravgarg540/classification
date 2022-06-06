@@ -81,6 +81,7 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch):
             )
             logging.info(msg)
         metrics.reset()
+        torch.cuda.synchronize()
     logging.info(
         '=> Epoch[{}] train end, duration: {:.2f}s'.format(epoch, time.time() - start)
     )
