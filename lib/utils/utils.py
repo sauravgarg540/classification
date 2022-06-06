@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -9,9 +8,7 @@ import random
 
 import torch
 import torch.backends.cudnn as cudnn
-
-from utils.common import comm
-
+from .distributed import distributed
 
 def init_distributed(args):
 
@@ -23,7 +20,7 @@ def init_distributed(args):
         torch.distributed.init_process_group(
             backend="nccl", init_method="env://", timeout=timedelta(minutes=180)
         )
-        comm.local_rank = args.local_rank
+        distributed.local_rank = args.local_rank
         print("=> init process group end")
 
 
@@ -56,14 +53,14 @@ def setup_logger(final_output_dir, phase):
     time_str = time.strftime('%Y-%m-%d-%H-%M')
     log_file = '{}_{}.txt'.format(phase, time_str)
     final_log_file = os.path.join(final_output_dir, log_file)
-    head = '%(asctime)-15s:[P:%(process)d]:' + comm.head + ' %(message)s'
+    head = '%(asctime)-15s:[P:%(process)d]:' + distributed.head + ' %(message)s'
     logging.basicConfig(filename=str(final_log_file), format=head)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     console = logging.StreamHandler()
     console.setFormatter(logging.Formatter(head))
     logging.getLogger('').addHandler(console)
-
+    
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

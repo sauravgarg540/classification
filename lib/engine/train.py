@@ -4,7 +4,7 @@ import time
 import torch
 
 from lib.core.metrics.eval_metrics import Metrics
-from utils.utils import AverageMeter
+from lib.utils.utils import AverageMeter
 
 
 def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch):

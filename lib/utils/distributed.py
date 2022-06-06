@@ -4,7 +4,7 @@ import torch
 import torch.distributed as dist
 
 
-class Comm(object):
+class Distributed(object):
     def __init__(self, local_rank=0):
         self.local_rank = 0
 
@@ -55,10 +55,6 @@ class Comm(object):
         if self.world_size == 1:
             return
         dist.barrier()
-
-
-comm = Comm()
-
 
 def all_gather(data):
     """
@@ -130,3 +126,6 @@ def reduce_dict(input_dict, average=True):
             values /= world_size
         reduced_dict = {k: v for k, v in zip(names, values)}
     return reduced_dict
+
+
+distributed = Distributed()
