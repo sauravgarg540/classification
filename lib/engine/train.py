@@ -8,7 +8,6 @@ from lib.utils.utils import AverageMeter
 
 
 def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch):
-    logging.info('=> {} train start'.format(epoch))
     start = time.time()
     batch_time = AverageMeter()
     data_time = AverageMeter()

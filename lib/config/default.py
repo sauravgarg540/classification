@@ -3,7 +3,7 @@ import os.path as op
 import yaml
 from yacs.config import CfgNode as CN
 
-from utils.common import comm
+from lib.utils.distributed import distributed
 
 _C = CN()
 
@@ -12,6 +12,7 @@ _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
 _C.VERBOSE = True
 _C.WORKERS = 0
+_C.seed = 20
 
 _C.AUG = CN(new_allowed=True)
 _C.AUG.NORMALIZE = CN()
@@ -60,6 +61,7 @@ _C.CUDNN.ENABLED = True
 # common params for NETWORK
 _C.MODEL = CN()
 _C.MODEL.NAME = ''
+_C.MODEL.CHECKPOINT = ''
 _C.MODEL.INIT_WEIGHTS = True
 _C.MODEL.PRETRAINED = False
 _C.MODEL.PRETRAINED_LAYERS = ['*']
@@ -95,7 +97,6 @@ _C.FINETUNE.LR_SCHEDULER.DECAY_TYPE = 'step'
 # train
 _C.TRAIN = CN()
 _C.TRAIN.AUTO_RESUME = True
-_C.TRAIN.CHECKPOINT = ''
 _C.TRAIN.LR_SCHEDULER = CN(new_allowed=True)
 _C.TRAIN.SCALE_LR = True
 _C.TRAIN.LR = 0.001
@@ -160,11 +161,11 @@ def update_config(config, args):
     config.defrost()
     config.merge_from_list(args.opts)
     if config.TRAIN.SCALE_LR:
-        config.TRAIN.LR *= comm.world_size
+        config.TRAIN.LR *= distributed.world_size
     config.freeze()
 
 
 def save_config(cfg, path):
-    if comm.is_main_process():
+    if distributed.is_main_process():
         with open(path, 'w') as f:
             f.write(cfg.dump())

@@ -18,7 +18,7 @@ from lib.core.models.build import build_model
 from lib.core.optimizers.build import build_optimizer
 from lib.engine.test import test
 from lib.engine.train import train_one_epoch
-from lib.utils.utils import create_logger, fix_seed, init_distributed, setup_cudnn
+from lib.utils.utils import create_logger, fix_seed, init_distributed, setup_cudnn, save_checkpoint, load_checkpoint
 from lib.utils.distributed import distributed
 from tensorboardX import SummaryWriter
 
@@ -50,9 +50,19 @@ def parse_args():
     return args
 
 
-def train(args, config, writer):
+def train(args, config, writer, log_dir):
     
     model = build_model(config, num_classes=config.MODEL.NUM_CLASSES)
+    begin_epoch = config.TRAIN.BEGIN_EPOCH
+    optimizer = build_optimizer(config, model)
+    criterion = build_criterion(config)
+    train_loader = build_dataloader(cfg=config, is_train=True)
+    val_loader = build_dataloader(cfg=config, is_train=False)
+    best_perf = 0.0
+    
+    # for resuming training
+    load_checkpoint(model, optimizer, log_dir)
+    
     if args.distributed:
         device = torch.device("cuda:{}".format(args.local_rank))
     else:
@@ -66,29 +76,24 @@ def train(args, config, writer):
             output_device=args.local_rank,
             find_unused_parameters=True,
         )
-
-
-    begin_epoch = config.TRAIN.BEGIN_EPOCH
-    optimizer = build_optimizer(config, model)
-    criterion = build_criterion(config)
-
-    train_loader = build_dataloader(cfg=config, is_train=True)
-    val_loader = build_dataloader(cfg=config, is_train=False)
-
-    best_perf = 0.0
-    
+    save_checkpoint(0, model, optimizer, best_perf, log_dir)
     logging.info('=> start training')
     start = time.time()
     for epoch in range(begin_epoch, config.TRAIN.END_EPOCH):
 
         with torch.autograd.set_detect_anomaly(config.TRAIN.DETECT_ANOMALY):
+            
             train_one_epoch(config, train_loader, model, criterion, optimizer, epoch)
 
-        if epoch % config.TRAIN.EVAL_BEGIN_EPOCH == 0:
-            perf, _, _, _ = test(config, model, val_loader, epoch)
-            best_perf = perf if perf > best_perf else best_perf
-            
-     #TODO: save checkpoints
+            if epoch % config.TRAIN.EVAL_EPOCH == 0:
+                perf, _, _, _, _ = test(config, model, val_loader, epoch)
+                if perf > best_perf:
+                    best_perf = perf
+                    #save model with best performance
+                    save_checkpoint(epoch, model, optimizer, best_perf, log_dir)
+    #save final model                                                
+    save_checkpoint(epoch, model, optimizer, best_perf, log_dir, final_model=True)         
+
     logging.info(
             '=> Training completed in: {:.2f}s'.format(time.time() - start)
         )       
@@ -118,4 +123,5 @@ if __name__ == '__main__':
         args=args,
         config=config,
         writer=writer,
+        log_dir=log_dir
     )

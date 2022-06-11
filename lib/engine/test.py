@@ -4,10 +4,10 @@ import time
 import torch
 
 from lib.core.metrics.eval_metrics import Metrics
-from utils.utils import AverageMeter
+from lib.utils.utils import AverageMeter
 
 
-def test(config, val_loader, model, criterion, epoch):
+def test(config, model, val_loader, epoch):
 
     val_start = time.time()
 
@@ -15,7 +15,6 @@ def test(config, val_loader, model, criterion, epoch):
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
-    losses = AverageMeter()
     metrics = Metrics(config.MODEL.NUM_CLASSES)
 
     # switch to evaluate mode
@@ -34,10 +33,8 @@ def test(config, val_loader, model, criterion, epoch):
             lables = lables.cuda(non_blocking=True)
 
             outputs = model(images)
-            loss = criterion(outputs, lables)
 
-            # measure metrics and record loss
-            losses.update(loss.item(), images.size(0))
+            # measure metrics
             metrics.update(outputs, lables)
 
             # measure elapsed time
@@ -57,15 +54,13 @@ def test(config, val_loader, model, criterion, epoch):
             'Time {batch_time.val:.3f}s ({batch_time.avg:.3f}s) '
             'Speed {speed:.1f} samples/s '
             'Data {data_time.val:.3f}s ({data_time.avg:.3f}s) '
-            'Loss {loss.avg:.5f} '
-            'Accuracy {epoch_accuracy.avg:.4f} '
-            'Precision {epoch_precision.avg:.4f} '
-            'Recall {epoch_recall.avg:.4f} '
-            'F1_Score {epoch_f1_score.avg:.4f}'.format(
+            'Accuracy {epoch_accuracy:.4f} '
+            'Precision {epoch_precision:.4f} '
+            'Recall {epoch_recall:.4f} '
+            'F1_Score {epoch_f1_score:.4f}'.format(
                 batch_time=batch_time,
                 speed=images.size(0) / batch_time.val,
                 data_time=data_time,
-                loss=losses,
                 epoch_accuracy=accuracy,
                 epoch_precision=precision,
                 epoch_recall=recall,
