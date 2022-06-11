@@ -6,7 +6,7 @@ import torch.distributed as dist
 
 class Distributed(object):
     def __init__(self, local_rank=0):
-        self.local_rank = 0
+        self.local_rank = local_rank
 
     @property
     def world_size(self):
@@ -64,7 +64,7 @@ def all_gather(data):
     Returns:
         list[data]: list of data gathered from each rank
     """
-    world_size = comm.world_size
+    world_size = distributed.world_size
     if world_size == 1:
         return [data]
 
@@ -108,7 +108,7 @@ def reduce_dict(input_dict, average=True):
     0 has the averaged results. Returns a dict with the same fields as
     input_dict, after reduction.
     """
-    world_size = comm.world_size
+    world_size = distributed.world_size
     if world_size < 2:
         return input_dict
     with torch.no_grad():
